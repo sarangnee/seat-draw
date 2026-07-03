@@ -330,6 +330,7 @@
     <div class="sep"></div>
     <button class="btn btn-blue" onclick="openNameModal()">👥 명단 입력 (<span id="nameCount">0</span>명)</button>
     <button class="btn btn-orange" id="pdfBtn" onclick="downloadPDF()" style="display:none">🖨 PDF 저장</button>
+    <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="pairMode" checked style="accent-color:#e67e22;width:15px;height:15px;cursor:pointer"> 짝꿍형</label>
   </div>
 
   <div class="status" id="status">행·열을 정하고 그리드 생성을 누르세요.</div>
@@ -732,16 +733,17 @@
       // 점대칭: 행·열 모두 반전
       const flipped = cellData.slice().reverse().map(row => row.slice().reverse());
 
+      const pair = document.getElementById('pairMode').checked;
       let rowsHtml = '';
       for (const row of flipped) {
         rowsHtml += '<tr>';
         row.forEach((v, c) => {
-          const gap = (c > 0 && c % 2 === 0) ? '<td class="gap"></td>' : '';
+          const gap = (pair && c > 0 && c % 2 === 0) ? '<td class="gap"></td>' : '';
           rowsHtml += gap + (v === null ? '<td class="none"></td>' : `<td class="seat">${v}</td>`);
         });
         rowsHtml += '</tr>';
       }
-      const gapCount = Math.max(0, Math.ceil(cols / 2) - 1);
+      const gapCount = pair ? Math.max(0, Math.ceil(cols / 2) - 1) : 0;
       const totalCols = cols + gapCount;
       const deskSpan = Math.min(2, cols);
       const deskLead = Math.floor((totalCols - deskSpan) / 2);
