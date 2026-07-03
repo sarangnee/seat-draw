@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>자리 뽑기</title>
+  <style>
+    :root { --cell: 80px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      background: #1a1a2e;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      padding: 12px 20px 8px;
+      gap: 8px;
+    }
+
+    h1 { color: #e0e0ff; font-size: 1.4rem; letter-spacing: 2px; flex-shrink: 0; }
+
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #16213e;
+      padding: 8px 16px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      flex-wrap: wrap;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 100%;
+      max-width: 960px;
+    }
+
+    .ctrl-row label { color: #a0a0cc; font-size: 0.82rem; white-space: nowrap; }
+
+    input[type=number], input[type=text] {
+      padding: 5px 7px;
+      border: 2px solid #0f3460;
+      border-radius: 6px;
+      background: #0f3460;
+      color: #fff;
+      font-size: 0.85rem;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type=number] { width: 52px; }
+    input[type=text]   { width: 140px; text-align: left; }
+    input:focus { border-color: #e94560; }
+
+    .sep { width: 1px; height: 20px; background: #2a2a5a; }
+
+    .btn {
+      padding: 5px 13px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.94); }
+    .btn-red    { background: #e94560; color: #fff; }
+    .btn-green  { background: #27ae60; color: #fff; }
+    .btn-orange { background: #e67e22; color: #fff; }
+    .btn-blue   { background: #2980b9; color: #fff; }
+    .btn-gray   { background: #0f3460; color: #a0a0cc; }
+    .btn-gray:hover { background: #1a4a8a; }
+
+    .mode-badge {
+      padding: 5px 13px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .badge-arrange { background: #e67e22; color: #fff; }
+    .badge-draw    { background: #27ae60; color: #fff; cursor: default; }
+    .badge-secret  { background: #8e44ad; color: #fff; }
+
+    .status {
+      color: #a0a0cc;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+      min-height: 1.1em;
+    }
+    .status span { color: #e94560; font-weight: bold; }
+
+    /* ── Grid ── */
+    .grid-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .grid { display: inline-grid; gap: 7px; }
+
+    .cell {
+      width: var(--cell);
+      height: var(--cell);
+      border-radius: calc(var(--cell) * 0.13);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      user-select: none;
+      transition: transform 0.12s, box-shadow 0.12s;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .cell.empty {
+      background: #0d1226;
+      border: 2px dashed #2a2a5a;
+      color: #2a2a5a;
+      font-size: calc(var(--cell) * 0.3);
+    }
+    .cell.empty:hover { border-color: #e67e22; color: #e67e22; }
+
+    .cell.seat {
+      background: #16213e;
+      border: 2px solid #3a3a8a;
+    }
+    .cell.seat:hover { border-color: #e94560; transform: scale(1.06); }
+
+    .cell.secret-seat {
+      background: #2d1854;
+      border: 2px solid #8e44ad;
+    }
+    .cell.secret-seat:hover { border-color: #c39bd3; transform: scale(1.06); }
+
+    .cell .icon { font-size: calc(var(--cell) * 0.4);  line-height: 1; }
+    .cell .sub  { font-size: calc(var(--cell) * 0.16); color: #5a5a9a; margin-top: 2px; }
+    .cell.secret-seat .sub { color: #c39bd3; }
+
+    .cell.waiting {
+      background: #16213e;
+      border: 2px solid #3a3a8a;
+      color: #8080cc;
+      font-size: calc(var(--cell) * 0.42);
+    }
+    .cell.waiting:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(233,69,96,0.4);
+      border-color: #e94560;
+    }
+
+    .cell.drawn {
+      background: linear-gradient(135deg, #e94560, #c62a47);
+      border: 2px solid #e94560;
+      color: #fff;
+      cursor: default;
+      box-shadow: 0 4px 16px rgba(233,69,96,0.5);
+      animation: pop 0.3s ease;
+      font-size: calc(var(--cell) * 0.48);
+    }
+
+    .cell.secret-drawn {
+      background: linear-gradient(135deg, #8e44ad, #6c3483);
+      border: 2px solid #ae68d4;
+      color: #fff;
+      cursor: default;
+      box-shadow: 0 4px 16px rgba(142,68,173,0.55);
+      animation: pop 0.3s ease;
+      font-size: calc(var(--cell) * 0.48);
+    }
+
+    .cell.slot-empty { background: transparent; border: none; pointer-events: none; }
+
+    @keyframes pop {
+      0%   { transform: scale(0.65); opacity: 0.3; }
+      60%  { transform: scale(1.14); }
+      100% { transform: scale(1); }
+    }
+
+    .done-all {
+      color: #ffd700;
+      font-size: 1rem;
+      font-weight: bold;
+      display: none;
+      flex-shrink: 0;
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Secret Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal-box {
+      background: #16213e;
+      border: 2px solid #8e44ad;
+      border-radius: 14px;
+      padding: 22px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 240px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.55);
+    }
+    .modal-box h3 { color: #c39bd3; font-size: 0.95rem; }
+    .modal-box p  { color: #a0a0cc; font-size: 0.82rem; }
+    .modal-box input[type=number] {
+      width: 100%;
+      padding: 9px 12px;
+      border: 2px solid #8e44ad;
+      border-radius: 8px;
+      background: #0f1e3c;
+      color: #fff;
+      font-size: 1.3rem;
+      text-align: center;
+    }
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btns .btn { flex: 1; padding: 7px 10px; font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+
+  <h1>🎲 자리 뽑기</h1>
+
+  <!-- 그리드 설정 -->
+  <div class="ctrl-row">
+    <label>행</label>
+    <input type="number" id="rows" value="5" min="1" max="20">
+    <label>열</label>
+    <input type="number" id="cols" value="6" min="1" max="20">
+    <button class="btn btn-red"   onclick="buildGrid()">그리드 생성</button>
+    <button class="btn btn-blue"  onclick="fillAll()">전체 좌석 채우기</button>
+    <div class="sep"></div>
+    <span class="mode-badge badge-arrange" id="modeBadge" onclick="onBadgeClick()" title="빠르게 두 번 클릭하면 비밀 모드">배치 모드</span>
+    <button class="btn btn-green"  id="startBtn" onclick="startDraw()" style="display:none">뽑기 시작 →</button>
+    <button class="btn btn-orange" id="editBtn"  onclick="goEdit()"   style="display:none">배치 수정</button>
+    <button class="btn btn-gray"   onclick="buildGrid()">초기화</button>
+  </div>
+
+  <!-- 번호 설정 -->
+  <div class="ctrl-row">
+    <label>최대 번호</label>
+    <input type="number" id="maxNum" placeholder="자동" min="1" max="999">
+    <label>제외 번호</label>
+    <input type="text" id="excludeNums" placeholder="예: 2, 3, 6">
+  </div>
+
+  <div class="status" id="status">행·열을 정하고 그리드 생성을 누르세요.</div>
+
+  <div class="grid-wrap">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="done-all" id="doneAll">🎉 모든 자리가 배정되었습니다!</div>
+
+  <!-- 비밀 모드 번호 지정 모달 -->
+  <div class="modal-overlay" id="secretModal">
+    <div class="modal-box">
+      <h3>🔒 비밀 번호 지정</h3>
+      <p id="modalDesc">이 좌석에 반드시 나올 번호를 지정하세요.</p>
+      <input type="number" id="secretInput" min="1" placeholder="번호 입력">
+      <div class="modal-btns">
+        <button class="btn btn-blue" onclick="confirmSecret()">확인</button>
+        <button class="btn btn-gray" onclick="cancelSecret()">취소</button>
+        <button class="btn btn-gray" id="clearBtn" onclick="clearSecret()" style="display:none">해제</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let mode = 'arrange';
+    let rows = 5, cols = 6;
+    let seats = new Set();
+    let secretMap = {};
+    let pool = [];
+    let secretTargetIdx = -1;
+    let lastBadgeClick = 0;
+
+    // ── 그리드 생성 / 초기화 ──────────────────────────────────────
+    function buildGrid() {
+      rows = clamp(parseInt(document.getElementById('rows').value) || 5, 1, 20);
+      cols = clamp(parseInt(document.getElementById('cols').value) || 6, 1, 20);
+      seats.clear();
+      secretMap = {};
+      pool = [];
+      mode = 'arrange';
+      lastBadgeClick = 0;
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('editBtn').style.display  = 'none';
+      document.getElementById('doneAll').style.display  = 'none';
+      setBadge('arrange');
+      applyGridSize();
+      renderArrange();
+      setStatus('셀을 클릭해서 좌석을 배치하세요.');
+    }
+
+    function fillAll() {
+      if (mode === 'draw') return;
+      for (let i = 0; i < rows * cols; i++) seats.add(i);
+      renderArrange();
+      document.getElementById('startBtn').style.display = 'inline-block';
+      updateStatus();
+    }
+
+    // ── 배치 모드 토글 ─────────────────────────────────────────────
+    function toggleSeat(idx) {
+      if (seats.has(idx)) {
+        seats.delete(idx);
+        delete secretMap[idx];
+      } else {
+        seats.add(idx);
+      }
+      renderArrange();
+      document.getElementById('startBtn').style.display = seats.size > 0 ? 'inline-block' : 'none';
+      updateStatus();
+    }
+
+    // ── 모드 뱃지 더블클릭 → 비밀 모드 ───────────────────────────
+    function onBadgeClick() {
+      if (mode === 'draw') return;
+      const now = Date.now();
+      if (now - lastBadgeClick < 400) {
+        mode = (mode === 'secret') ? 'arrange' : 'secret';
+        setBadge(mode);
+        renderArrange();
+        updateStatus();
+      }
+      lastBadgeClick = now;
+    }
+
+    function setBadge(m) {
+      const b = document.getElementById('modeBadge');
+      const map = {
+        arrange: ['배치 모드',    'mode-badge badge-arrange'],
+        draw:    ['뽑기 모드',    'mode-badge badge-draw'],
+        secret:  ['🔒 비밀 모드', 'mode-badge badge-secret'],
+      };
+      b.textContent = map[m][0];
+      b.className   = map[m][1];
+    }
+
+    // ── 그리드 렌더 (배치/비밀 모드) ─────────────────────────────
+    function renderArrange() {
+      const grid = document.getElementById('grid');
+      const size = calcCellSize();
+      grid.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
+      grid.innerHTML = '';
+
+      for (let i = 0; i < rows * cols; i++) {
+        const cell = document.createElement('div');
+        if (seats.has(i)) {
+          const isSecret = secretMap[i] !== undefined;
+          const order = getSeatOrder(i);
+          if (mode === 'secret' && isSecret) {
+            cell.className = 'cell secret-seat';
+            cell.innerHTML = `<span class="icon">🔒</span><span class="sub">${secretMap[i]}번 지정</span>`;
+          } else {
+            cell.className = 'cell seat';
+            cell.innerHTML = `<span class="icon">💺</span><span class="sub">${order}번</span>`;
+          }
+          cell.onclick = () => mode === 'secret' ? openSecretModal(i) : toggleSeat(i);
+        } else {
+          cell.className = 'cell empty';
+          cell.textContent = '+';
+          cell.onclick = () => toggleSeat(i);
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    function getSeatOrder(idx) {
+      return [...seats].sort((a, b) => a - b).indexOf(idx) + 1;
+    }
+
+    // ── 비밀 모달 ─────────────────────────────────────────────────
+    function openSecretModal(idx) {
+      secretTargetIdx = idx;
+      const existing = secretMap[idx];
+      document.getElementById('secretInput').value = existing ?? '';
+      document.getElementById('clearBtn').style.display = existing !== undefined ? 'inline-block' : 'none';
+      document.getElementById('modalDesc').textContent =
+        `좌석 ${getSeatOrder(idx)}번에 반드시 나올 번호를 지정하세요.`;
+      document.getElementById('secretModal').classList.add('show');
+      setTimeout(() => document.getElementById('secretInput').focus(), 50);
+    }
+
+    function confirmSecret() {
+      const val = parseInt(document.getElementById('secretInput').value);
+      if (!val || val < 1) { alert('올바른 번호를 입력하세요.'); return; }
+      secretMap[secretTargetIdx] = val;
+      closeModal();
+      renderArrange();
+      updateStatus();
+    }
+
+    function clearSecret() {
+      delete secretMap[secretTargetIdx];
+      closeModal();
+      renderArrange();
+      updateStatus();
+    }
+
+    function cancelSecret() { closeModal(); }
+    function closeModal() {
+      document.getElementById('secretModal').classList.remove('show');
+      secretTargetIdx = -1;
+    }
+
+    // ── 뽑기 시작 ─────────────────────────────────────────────────
+    function startDraw() {
+      if (seats.size === 0) return;
+      mode = 'draw';
+      setBadge('draw');
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('editBtn').style.display  = 'inline-block';
+      document.getElementById('doneAll').style.display  = 'none';
+
+      // 번호 풀 구성: 1~maxNum 중 제외번호·비밀번호 제거
+      const maxNum = parseInt(document.getElementById('maxNum').value) || seats.size;
+      const excludeRaw = document.getElementById('excludeNums').value;
+      const excluded = new Set(
+        excludeRaw.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n > 0)
+      );
+      const secretNums = new Set(Object.values(secretMap));
+
+      pool = [];
+      for (let n = 1; n <= maxNum; n++) {
+        if (!excluded.has(n) && !secretNums.has(n)) pool.push(n);
+      }
+      shuffle(pool);
+
+      renderDraw();
+      updateStatus();
+    }
+
+    function goEdit() {
+      mode = 'arrange';
+      setBadge('arrange');
+      document.getElementById('startBtn').style.display = seats.size > 0 ? 'inline-block' : 'none';
+      document.getElementById('editBtn').style.display  = 'none';
+      document.getElementById('doneAll').style.display  = 'none';
+      renderArrange();
+      updateStatus();
+    }
+
+    // ── 그리드 렌더 (뽑기 모드) ──────────────────────────────────
+    function renderDraw() {
+      const grid = document.getElementById('grid');
+      const size = calcCellSize();
+      grid.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
+      grid.innerHTML = '';
+
+      for (let i = 0; i < rows * cols; i++) {
+        const cell = document.createElement('div');
+        if (seats.has(i)) {
+          cell.className = 'cell waiting';
+          cell.textContent = '?';
+          cell.onclick = () => pickNumber(cell, i);
+        } else {
+          cell.className = 'cell slot-empty';
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    function pickNumber(cell, idx) {
+      if (!cell.classList.contains('waiting')) return;
+
+      if (secretMap[idx] !== undefined) {
+        cell.className = 'cell drawn';
+        cell.textContent = secretMap[idx];
+      } else {
+        if (pool.length === 0) return;
+        cell.className = 'cell drawn';
+        cell.textContent = pool.pop();
+      }
+      cell.onclick = null;
+      updateStatus();
+      if (!document.querySelector('#grid .cell.waiting')) {
+        document.getElementById('doneAll').style.display = 'block';
+      }
+    }
+
+    // ── 상태 표시 ──────────────────────────────────────────────────
+    function updateStatus() {
+      if (mode === 'draw') {
+        const total   = seats.size;
+        const waiting = document.querySelectorAll('#grid .cell.waiting').length;
+        setStatus(`뽑힌 자리: <span>${total - waiting}</span> / ${total}`);
+      } else {
+        const sc = Object.keys(secretMap).length;
+        setStatus(
+          `좌석 수: <span>${seats.size}</span>개` +
+          (sc > 0 ? `&nbsp;·&nbsp;비밀 지정: <span>${sc}</span>개` : '') +
+          (mode === 'secret' ? '&nbsp;·&nbsp;<span style="color:#c39bd3">좌석을 클릭해 번호를 지정하세요</span>' : '')
+        );
+      }
+    }
+
+    function setStatus(html) {
+      document.getElementById('status').innerHTML = html;
+    }
+
+    // ── 반응형 셀 크기 ─────────────────────────────────────────────
+    function calcCellSize() {
+      const availW = window.innerWidth  - 40;
+      const availH = window.innerHeight - 185; // 상단 UI 여백
+      const byW = Math.floor((availW - (cols - 1) * 7) / cols);
+      const byH = Math.floor((availH - (rows - 1) * 7) / rows);
+      return Math.max(44, Math.min(byW, byH, 160));
+    }
+
+    function applyGridSize() {
+      const size = calcCellSize();
+      document.documentElement.style.setProperty('--cell', size + 'px');
+    }
+
+    // ── 유틸 ──────────────────────────────────────────────────────
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+    // 모달 바깥 클릭 닫기
+    document.getElementById('secretModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('secretModal')) cancelSecret();
+    });
+
+    document.getElementById('secretInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') confirmSecret();
+      if (e.key === 'Escape') cancelSecret();
+    });
+
+    // 창 크기 변경 시 그리드 재렌더
+    window.addEventListener('resize', () => {
+      applyGridSize();
+      if (mode === 'draw') renderDraw();
+      else renderArrange();
+    });
+
+    buildGrid();
+  </script>
+</body>
+</html>
