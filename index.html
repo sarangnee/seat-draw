@@ -195,18 +195,57 @@
       border-radius: 8px;
     }
 
-    #nameArea {
-      width: 260px;
-      height: 180px;
+    #nameList {
+      width: 270px;
+      max-height: 46vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 4px;
+    }
+    .name-row { display: flex; align-items: center; gap: 8px; }
+    .name-row .no {
+      width: 30px;
+      text-align: right;
+      color: #9ca3af;
+      font-size: 0.85rem;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .name-row input {
+      flex: 1;
+      padding: 8px 10px;
       border: 2px solid #d1d5db;
       border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 0.9rem;
+      font-size: 1rem;
       font-family: inherit;
-      resize: none;
       outline: none;
+      text-align: left;
+      width: auto;
     }
-    #nameArea:focus { border-color: #2980b9; }
+    .name-row input:focus { border-color: #2980b9; background: #eff6ff; }
+    .name-row .del {
+      border: none;
+      background: none;
+      color: #d1d5db;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      flex-shrink: 0;
+    }
+    .name-row .del:hover { color: #e94560; }
+    .add-name-btn {
+      border: 2px dashed #d1d5db;
+      background: #fafafa;
+      color: #9ca3af;
+      border-radius: 8px;
+      padding: 7px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .add-name-btn:hover { border-color: #2980b9; color: #2980b9; }
 
     @keyframes pop {
       0%   { transform: scale(0.65); opacity: 0.3; }
@@ -323,8 +362,9 @@
   <div class="modal-overlay" id="nameModal">
     <div class="modal-box">
       <h3>👥 학생 명단</h3>
-      <p>번호 순서대로 한 줄에 한 명씩 입력 (1번이 첫 줄)</p>
-      <textarea id="nameArea" placeholder="김철수&#10;이영희&#10;박민준"></textarea>
+      <p>번호 순서대로 입력 · 엔터 치면 다음 칸으로</p>
+      <div id="nameList"></div>
+      <button class="add-name-btn" onclick="addNameField('', true)">+ 학생 추가</button>
       <div class="modal-btns">
         <button class="btn btn-blue" onclick="saveNames()">저장</button>
         <button class="btn btn-gray" onclick="closeNameModal()">취소</button>
@@ -349,13 +389,49 @@
 
     // ── 명단 모달 ──
     function openNameModal() {
-      document.getElementById('nameArea').value = names.join('\n');
+      const list = document.getElementById('nameList');
+      list.innerHTML = '';
+      (names.length ? names : ['']).forEach(n => addNameField(n, false));
       document.getElementById('nameModal').classList.add('show');
-      setTimeout(() => document.getElementById('nameArea').focus(), 50);
+      renumberNames();
+      setTimeout(() => { const f = list.querySelector('input'); if (f) f.focus(); }, 50);
     }
+
+    function addNameField(value, focus) {
+      const list = document.getElementById('nameList');
+      const row = document.createElement('div');
+      row.className = 'name-row';
+      row.innerHTML = `<span class="no"></span><input type="text" placeholder="이름"><button class="del" title="삭제">×</button>`;
+      const input = row.querySelector('input');
+      input.value = value || '';
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const inputs = [...list.querySelectorAll('input')];
+          const i = inputs.indexOf(input);
+          if (i === inputs.length - 1) addNameField('', true);
+          else inputs[i + 1].focus();
+        }
+        if (e.key === 'Escape') closeNameModal();
+      });
+      row.querySelector('.del').onclick = () => {
+        row.remove();
+        if (!list.querySelector('.name-row')) addNameField('', false);
+        renumberNames();
+      };
+      list.appendChild(row);
+      renumberNames();
+      if (focus) { input.focus(); input.scrollIntoView({ block: 'nearest' }); }
+    }
+
+    function renumberNames() {
+      [...document.querySelectorAll('#nameList .name-row .no')]
+        .forEach((el, i) => el.textContent = (i + 1) + '.');
+    }
+
     function saveNames() {
-      names = document.getElementById('nameArea').value
-        .split(/[\n,]/).map(t => t.trim()).filter(t => t);
+      names = [...document.querySelectorAll('#nameList input')].map(i => i.value.trim());
+      while (names.length && !names[names.length - 1]) names.pop();
       localStorage.setItem('seatNames', JSON.stringify(names));
       updateNameCount();
       closeNameModal();
