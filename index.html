@@ -681,7 +681,7 @@
     // ── 반응형 셀 크기 ─────────────────────────────────────────────
     function calcCellSize() {
       const availW = window.innerWidth  - 40;
-      const availH = window.innerHeight - 230; // 상단 UI + 교탁 여백
+      const availH = window.innerHeight - 330; // 상단 UI + 교탁 + 하단 여유
       const byW = Math.floor((availW - (cols - 1) * 7) / cols);
       const byH = Math.floor((availH - (rows - 1) * 7) / rows);
       return Math.max(44, Math.min(byW, byH, 160));
