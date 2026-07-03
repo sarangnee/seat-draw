@@ -10,7 +10,7 @@
 
     body {
       font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-      background: #1a1a2e;
+      background: #ffffff;
       height: 100vh;
       display: flex;
       flex-direction: column;
@@ -20,16 +20,16 @@
       gap: 8px;
     }
 
-    h1 { color: #e0e0ff; font-size: 1.4rem; letter-spacing: 2px; flex-shrink: 0; }
+    h1 { color: #1f2937; font-size: 1.4rem; letter-spacing: 2px; flex-shrink: 0; }
 
     .ctrl-row {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: #16213e;
+      background: #f3f4f6;
       padding: 8px 16px;
       border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       flex-wrap: wrap;
       justify-content: center;
       flex-shrink: 0;
@@ -37,14 +37,14 @@
       max-width: 960px;
     }
 
-    .ctrl-row label { color: #a0a0cc; font-size: 0.82rem; white-space: nowrap; }
+    .ctrl-row label { color: #4b5563; font-size: 0.82rem; white-space: nowrap; }
 
     input[type=number], input[type=text] {
       padding: 5px 7px;
-      border: 2px solid #0f3460;
+      border: 2px solid #d1d5db;
       border-radius: 6px;
-      background: #0f3460;
-      color: #fff;
+      background: #fff;
+      color: #111827;
       font-size: 0.85rem;
       text-align: center;
       outline: none;
@@ -54,7 +54,7 @@
     input[type=text]   { width: 140px; text-align: left; }
     input:focus { border-color: #e94560; }
 
-    .sep { width: 1px; height: 20px; background: #2a2a5a; }
+    .sep { width: 1px; height: 20px; background: #d1d5db; }
 
     .btn {
       padding: 5px 13px;
@@ -71,8 +71,8 @@
     .btn-green  { background: #27ae60; color: #fff; }
     .btn-orange { background: #e67e22; color: #fff; }
     .btn-blue   { background: #2980b9; color: #fff; }
-    .btn-gray   { background: #0f3460; color: #a0a0cc; }
-    .btn-gray:hover { background: #1a4a8a; }
+    .btn-gray   { background: #e5e7eb; color: #4b5563; }
+    .btn-gray:hover { background: #d1d5db; }
 
     .mode-badge {
       padding: 5px 13px;
@@ -89,7 +89,7 @@
     .badge-secret  { background: #8e44ad; color: #fff; }
 
     .status {
-      color: #a0a0cc;
+      color: #6b7280;
       font-size: 0.8rem;
       flex-shrink: 0;
       min-height: 1.1em;
@@ -124,33 +124,33 @@
     }
 
     .cell.empty {
-      background: #0d1226;
-      border: 2px dashed #2a2a5a;
-      color: #2a2a5a;
+      background: #fafafa;
+      border: 2px dashed #d1d5db;
+      color: #d1d5db;
       font-size: calc(var(--cell) * 0.3);
     }
     .cell.empty:hover { border-color: #e67e22; color: #e67e22; }
 
     .cell.seat {
-      background: #16213e;
-      border: 2px solid #3a3a8a;
+      background: #eef2ff;
+      border: 2px solid #a5b4fc;
     }
     .cell.seat:hover { border-color: #e94560; transform: scale(1.06); }
 
     .cell.secret-seat {
-      background: #2d1854;
+      background: #f3e8ff;
       border: 2px solid #8e44ad;
     }
     .cell.secret-seat:hover { border-color: #c39bd3; transform: scale(1.06); }
 
     .cell .icon { font-size: calc(var(--cell) * 0.4);  line-height: 1; }
-    .cell .sub  { font-size: calc(var(--cell) * 0.16); color: #5a5a9a; margin-top: 2px; }
-    .cell.secret-seat .sub { color: #c39bd3; }
+    .cell .sub  { font-size: calc(var(--cell) * 0.16); color: #6b7280; margin-top: 2px; }
+    .cell.secret-seat .sub { color: #8e44ad; }
 
     .cell.waiting {
-      background: #16213e;
-      border: 2px solid #3a3a8a;
-      color: #8080cc;
+      background: #fff;
+      border: 2px solid #94a3b8;
+      color: #64748b;
       font-size: calc(var(--cell) * 0.42);
     }
     .cell.waiting:hover {
@@ -181,6 +181,33 @@
 
     .cell.slot-empty { background: transparent; border: none; pointer-events: none; }
 
+    .cell.drawn.has-name, .cell.secret-drawn.has-name { font-size: calc(var(--cell) * 0.26); }
+
+    .teacher-desk {
+      flex-shrink: 0;
+      border: 2px solid #9ca3af;
+      background: #f3f4f6;
+      color: #4b5563;
+      font-weight: bold;
+      font-size: 0.85rem;
+      letter-spacing: 6px;
+      padding: 6px 40px;
+      border-radius: 8px;
+    }
+
+    #nameArea {
+      width: 260px;
+      height: 180px;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+    }
+    #nameArea:focus { border-color: #2980b9; }
+
     @keyframes pop {
       0%   { transform: scale(0.65); opacity: 0.3; }
       60%  { transform: scale(1.14); }
@@ -188,7 +215,7 @@
     }
 
     .done-all {
-      color: #ffd700;
+      color: #d97706;
       font-size: 1rem;
       font-weight: bold;
       display: none;
@@ -204,7 +231,7 @@
     .modal-overlay {
       display: none;
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.65);
+      background: rgba(0,0,0,0.35);
       z-index: 100;
       align-items: center;
       justify-content: center;
@@ -212,7 +239,7 @@
     .modal-overlay.show { display: flex; }
 
     .modal-box {
-      background: #16213e;
+      background: #ffffff;
       border: 2px solid #8e44ad;
       border-radius: 14px;
       padding: 22px 26px;
@@ -220,17 +247,17 @@
       flex-direction: column;
       gap: 12px;
       min-width: 240px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.55);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.25);
     }
-    .modal-box h3 { color: #c39bd3; font-size: 0.95rem; }
-    .modal-box p  { color: #a0a0cc; font-size: 0.82rem; }
+    .modal-box h3 { color: #8e44ad; font-size: 0.95rem; }
+    .modal-box p  { color: #6b7280; font-size: 0.82rem; }
     .modal-box input[type=number] {
       width: 100%;
       padding: 9px 12px;
       border: 2px solid #8e44ad;
       border-radius: 8px;
-      background: #0f1e3c;
-      color: #fff;
+      background: #fff;
+      color: #111827;
       font-size: 1.3rem;
       text-align: center;
     }
@@ -263,9 +290,14 @@
     <input type="number" id="maxNum" placeholder="자동" min="1" max="999">
     <label>제외 번호</label>
     <input type="text" id="excludeNums" placeholder="예: 2, 3, 6">
+    <div class="sep"></div>
+    <button class="btn btn-blue" onclick="openNameModal()">👥 명단 입력 (<span id="nameCount">0</span>명)</button>
+    <button class="btn btn-orange" id="pdfBtn" onclick="downloadPDF()" style="display:none">🖨 PDF 저장</button>
   </div>
 
   <div class="status" id="status">행·열을 정하고 그리드 생성을 누르세요.</div>
+
+  <div class="teacher-desk">교 탁</div>
 
   <div class="grid-wrap">
     <div class="grid" id="grid"></div>
@@ -287,6 +319,19 @@
     </div>
   </div>
 
+  <!-- 명단 입력 모달 -->
+  <div class="modal-overlay" id="nameModal">
+    <div class="modal-box">
+      <h3>👥 학생 명단</h3>
+      <p>번호 순서대로 한 줄에 한 명씩 입력 (1번이 첫 줄)</p>
+      <textarea id="nameArea" placeholder="김철수&#10;이영희&#10;박민준"></textarea>
+      <div class="modal-btns">
+        <button class="btn btn-blue" onclick="saveNames()">저장</button>
+        <button class="btn btn-gray" onclick="closeNameModal()">취소</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let mode = 'arrange';
     let rows = 5, cols = 6;
@@ -295,6 +340,33 @@
     let pool = [];
     let secretTargetIdx = -1;
     let lastBadgeClick = 0;
+    let names = [];
+    let results = {};   // idx -> 뽑힌 번호
+
+    try { names = JSON.parse(localStorage.getItem('seatNames')) || []; } catch (e) {}
+
+    function labelOf(num) { return names[num - 1] || String(num); }
+
+    // ── 명단 모달 ──
+    function openNameModal() {
+      document.getElementById('nameArea').value = names.join('\n');
+      document.getElementById('nameModal').classList.add('show');
+      setTimeout(() => document.getElementById('nameArea').focus(), 50);
+    }
+    function saveNames() {
+      names = document.getElementById('nameArea').value
+        .split(/[\n,]/).map(t => t.trim()).filter(t => t);
+      localStorage.setItem('seatNames', JSON.stringify(names));
+      updateNameCount();
+      closeNameModal();
+      updateStatus();
+    }
+    function closeNameModal() {
+      document.getElementById('nameModal').classList.remove('show');
+    }
+    function updateNameCount() {
+      document.getElementById('nameCount').textContent = names.length;
+    }
 
     // ── 그리드 생성 / 초기화 ──────────────────────────────────────
     function buildGrid() {
@@ -303,6 +375,8 @@
       seats.clear();
       secretMap = {};
       pool = [];
+      results = {};
+      document.getElementById('pdfBtn').style.display = 'none';
       mode = 'arrange';
       lastBadgeClick = 0;
       document.getElementById('startBtn').style.display = 'none';
@@ -436,7 +510,9 @@
       document.getElementById('doneAll').style.display  = 'none';
 
       // 번호 풀 구성: 1~maxNum 중 제외번호·비밀번호 제거
-      const maxNum = parseInt(document.getElementById('maxNum').value) || seats.size;
+      results = {};
+      const maxNum = parseInt(document.getElementById('maxNum').value)
+        || (names.length > 0 ? names.length : seats.size);
       const excludeRaw = document.getElementById('excludeNums').value;
       const excluded = new Set(
         excludeRaw.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n > 0)
@@ -486,14 +562,20 @@
     function pickNumber(cell, idx) {
       if (!cell.classList.contains('waiting')) return;
 
+      let num;
       if (secretMap[idx] !== undefined) {
+        num = secretMap[idx];
         cell.className = 'cell drawn';
-        cell.textContent = secretMap[idx];
       } else {
         if (pool.length === 0) return;
+        num = pool.pop();
         cell.className = 'cell drawn';
-        cell.textContent = pool.pop();
       }
+      results[idx] = num;
+      const label = labelOf(num);
+      cell.textContent = label;
+      if (names[num - 1]) cell.classList.add('has-name');
+      document.getElementById('pdfBtn').style.display = 'inline-block';
       cell.onclick = null;
       updateStatus();
       if (!document.querySelector('#grid .cell.waiting')) {
@@ -524,7 +606,7 @@
     // ── 반응형 셀 크기 ─────────────────────────────────────────────
     function calcCellSize() {
       const availW = window.innerWidth  - 40;
-      const availH = window.innerHeight - 185; // 상단 UI 여백
+      const availH = window.innerHeight - 230; // 상단 UI + 교탁 여백
       const byW = Math.floor((availW - (cols - 1) * 7) / cols);
       const byH = Math.floor((availH - (rows - 1) * 7) / rows);
       return Math.max(44, Math.min(byW, byH, 160));
@@ -562,6 +644,62 @@
       else renderArrange();
     });
 
+    document.getElementById('nameModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('nameModal')) closeNameModal();
+    });
+
+    // ── PDF 저장: 화면과 점대칭(180° 회전), 교탁이 아래 ──
+    function downloadPDF() {
+      const cellData = [];   // [row][col] = 이름/번호 or null
+      for (let r = 0; r < rows; r++) {
+        const rowArr = [];
+        for (let c = 0; c < cols; c++) {
+          const idx = r * cols + c;
+          if (seats.has(idx) && results[idx] !== undefined) rowArr.push(labelOf(results[idx]));
+          else if (seats.has(idx)) rowArr.push('');
+          else rowArr.push(null);
+        }
+        cellData.push(rowArr);
+      }
+      // 점대칭: 행·열 모두 반전
+      const flipped = cellData.slice().reverse().map(row => row.slice().reverse());
+
+      let rowsHtml = '';
+      for (const row of flipped) {
+        rowsHtml += '<tr>';
+        row.forEach((v, c) => {
+          const gap = (c > 0 && c % 2 === 0) ? '<td class="gap"></td>' : '';
+          rowsHtml += gap + (v === null ? '<td class="none"></td>' : `<td class="seat">${v}</td>`);
+        });
+        rowsHtml += '</tr>';
+      }
+      const gapCount = Math.max(0, Math.ceil(cols / 2) - 1);
+      const totalCols = cols + gapCount;
+      const deskSpan = Math.min(2, cols);
+      const deskLead = Math.floor((totalCols - deskSpan) / 2);
+      const deskRow = `<tr class="desk-row"><td class="none" colspan="${deskLead}"></td><td class="desk" colspan="${deskSpan}">교&nbsp;&nbsp;탁</td><td class="none" colspan="${totalCols - deskLead - deskSpan}"></td></tr>`;
+
+      const w = window.open('', '_blank');
+      w.document.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>자리배치표</title>
+<style>
+  @page { size: A4 portrait; margin: 15mm; }
+  body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; padding: 24px; }
+  table { border-collapse: collapse; margin: 0 auto; }
+  td { text-align: center; font-weight: bold; font-size: 15px; }
+  td.seat { border: 1.5px solid #000; width: 92px; height: 42px; }
+  td.none { border: none; width: 92px; height: 42px; }
+  td.gap  { border: none; width: 22px; }
+  td.desk { border: 1.5px solid #000; height: 42px; }
+  tr.desk-row td { border-top: none; }
+  tr.desk-row td.desk { border-top: 1.5px solid #000; }
+</style></head><body>
+<table>${rowsHtml}${deskRow}</table>
+<script>window.onload = () => { window.print(); };<\/script>
+</body></html>`);
+      w.document.close();
+    }
+
+    updateNameCount();
     buildGrid();
   </script>
 </body>
