@@ -185,6 +185,19 @@
 
     .cell.drawn.has-name, .cell.secret-drawn.has-name { font-size: calc(var(--cell) * 0.26); }
 
+    .cell.swappable { touch-action: none; }
+    .cell.drawn.swappable { cursor: grab; }
+    .cell.drawn.swappable:active { cursor: grabbing; }
+    .cell.drag-src { opacity: 0.35; }
+    .cell.drag-over { outline: 3px dashed #2980b9; outline-offset: 3px; transform: scale(1.06); }
+    #dragGhost {
+      position: fixed;
+      pointer-events: none;
+      z-index: 200;
+      opacity: 0.85;
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+
     .teacher-desk {
       flex-shrink: 0;
       border: 2px solid #9ca3af;
@@ -322,6 +335,7 @@
     <span class="mode-badge badge-arrange" id="modeBadge" onclick="onBadgeClick()" title="빠르게 두 번 클릭하면 비밀 모드">배치 모드</span>
     <button class="btn btn-green"  id="startBtn" onclick="startDraw()" style="display:none">뽑기 시작 →</button>
     <button class="btn btn-orange" id="editBtn"  onclick="goEdit()"   style="display:none">배치 수정</button>
+    <button class="btn btn-blue" id="swapBtn" onclick="toggleSwap()" style="display:none">🔀 자리 변경</button>
     <button class="btn btn-gray"   onclick="buildGrid()">초기화</button>
   </div>
 
@@ -456,7 +470,9 @@
       secretMap = {};
       pool = [];
       results = {};
+      swapMode = false;
       document.getElementById('pdfBtn').style.display = 'none';
+      document.getElementById('swapBtn').style.display = 'none';
       mode = 'arrange';
       lastBadgeClick = 0;
       document.getElementById('startBtn').style.display = 'none';
@@ -587,7 +603,10 @@
       setBadge('draw');
       document.getElementById('startBtn').style.display = 'none';
       document.getElementById('editBtn').style.display  = 'inline-block';
+      document.getElementById('swapBtn').style.display  = 'inline-block';
       document.getElementById('doneAll').style.display  = 'none';
+      swapMode = false;
+      updateSwapBtn();
 
       // 번호 풀 구성: 1~maxNum 중 제외번호·비밀번호 제거
       results = {};
@@ -610,6 +629,9 @@
     }
 
     function goEdit() {
+      swapMode = false;
+      updateSwapBtn();
+      document.getElementById('swapBtn').style.display = 'none';
       mode = 'arrange';
       setBadge('arrange');
       document.getElementById('startBtn').style.display = seats.size > 0 ? 'inline-block' : 'none';
@@ -632,6 +654,7 @@
           cell.className = 'cell waiting';
           cell.textContent = '?';
           cell.onclick = () => pickNumber(cell, i);
+          cell.addEventListener('pointerdown', e => onCellPointerDown(e, cell));
         } else {
           cell.className = 'cell slot-empty';
         }
@@ -656,6 +679,7 @@
       cell.textContent = label;
       if (names[num - 1]) cell.classList.add('has-name');
       document.getElementById('pdfBtn').style.display = 'inline-block';
+      if (swapMode) cell.classList.add('swappable');
       cell.onclick = null;
       updateStatus();
       if (!document.querySelector('#grid .cell.waiting')) {
@@ -663,9 +687,87 @@
       }
     }
 
+    // ── 자리 변경 모드 (드래그 스왑) ─────────────────────────────
+    let swapMode = false;
+    let dragSrc = null, dragGhost = null, dragOverCell = null;
+
+    function toggleSwap() {
+      swapMode = !swapMode;
+      updateSwapBtn();
+      updateStatus();
+    }
+
+    function updateSwapBtn() {
+      const b = document.getElementById('swapBtn');
+      b.textContent = swapMode ? '✅ 변경 완료' : '🔀 자리 변경';
+      b.className = swapMode ? 'btn btn-green' : 'btn btn-blue';
+      document.querySelectorAll('#grid .cell.drawn, #grid .cell.secret-drawn')
+        .forEach(c => c.classList.toggle('swappable', swapMode));
+    }
+
+    function cellIdx(cell) {
+      return [...document.getElementById('grid').children].indexOf(cell);
+    }
+
+    function onCellPointerDown(e, cell) {
+      if (!swapMode || !cell.classList.contains('drawn') && !cell.classList.contains('secret-drawn')) return;
+      e.preventDefault();
+      dragSrc = cell;
+      cell.classList.add('drag-src');
+      dragGhost = cell.cloneNode(true);
+      dragGhost.id = 'dragGhost';
+      dragGhost.classList.remove('drag-src');
+      dragGhost.style.width  = cell.offsetWidth + 'px';
+      dragGhost.style.height = cell.offsetHeight + 'px';
+      document.body.appendChild(dragGhost);
+      moveGhost(e);
+      window.addEventListener('pointermove', onDragMove);
+      window.addEventListener('pointerup', onDragUp);
+    }
+
+    function moveGhost(e) {
+      dragGhost.style.left = e.clientX + 'px';
+      dragGhost.style.top  = e.clientY + 'px';
+    }
+
+    function onDragMove(e) {
+      e.preventDefault();
+      moveGhost(e);
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const cell = el && el.closest ? el.closest('#grid .cell') : null;
+      const valid = cell && cell !== dragSrc &&
+        (cell.classList.contains('drawn') || cell.classList.contains('secret-drawn'));
+      if (dragOverCell && dragOverCell !== cell) dragOverCell.classList.remove('drag-over');
+      dragOverCell = valid ? cell : null;
+      if (dragOverCell) dragOverCell.classList.add('drag-over');
+    }
+
+    function onDragUp(e) {
+      window.removeEventListener('pointermove', onDragMove);
+      window.removeEventListener('pointerup', onDragUp);
+      if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+      if (dragOverCell) {
+        swapSeats(dragSrc, dragOverCell);
+        dragOverCell.classList.remove('drag-over');
+        dragOverCell = null;
+      }
+      if (dragSrc) { dragSrc.classList.remove('drag-src'); dragSrc = null; }
+    }
+
+    function swapSeats(a, b) {
+      const ia = cellIdx(a), ib = cellIdx(b);
+      [results[ia], results[ib]] = [results[ib], results[ia]];
+      for (const [cell, idx] of [[a, ia], [b, ib]]) {
+        const num = results[idx];
+        cell.textContent = labelOf(num);
+        cell.classList.toggle('has-name', !!names[num - 1]);
+      }
+    }
+
     // ── 상태 표시 ──────────────────────────────────────────────────
     function updateStatus() {
       if (mode === 'draw') {
+        if (swapMode) { setStatus('<span style="color:#2980b9">자리를 드래그해서 서로 맞바꾸세요</span>'); return; }
         const total   = seats.size;
         const waiting = document.querySelectorAll('#grid .cell.waiting').length;
         setStatus(`뽑힌 자리: <span>${total - waiting}</span> / ${total}`);
