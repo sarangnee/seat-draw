@@ -195,7 +195,8 @@
       pointer-events: none;
       z-index: 200;
       opacity: 0.85;
-      transform: translate(-50%, -50%) scale(0.95);
+      transition: none !important;
+      margin: 0;
     }
 
     .teacher-desk {
@@ -690,6 +691,7 @@
     // ── 자리 변경 모드 (드래그 스왑) ─────────────────────────────
     let swapMode = false;
     let dragSrc = null, dragGhost = null, dragOverCell = null;
+    let dragOffX = 0, dragOffY = 0;
 
     function toggleSwap() {
       swapMode = !swapMode;
@@ -713,6 +715,9 @@
       if (!swapMode || !cell.classList.contains('drawn') && !cell.classList.contains('secret-drawn')) return;
       e.preventDefault();
       dragSrc = cell;
+      const rect = cell.getBoundingClientRect();
+      dragOffX = e.clientX - rect.left;
+      dragOffY = e.clientY - rect.top;
       cell.classList.add('drag-src');
       dragGhost = cell.cloneNode(true);
       dragGhost.id = 'dragGhost';
@@ -726,8 +731,8 @@
     }
 
     function moveGhost(e) {
-      dragGhost.style.left = e.clientX + 'px';
-      dragGhost.style.top  = e.clientY + 'px';
+      dragGhost.style.left = (e.clientX - dragOffX) + 'px';
+      dragGhost.style.top  = (e.clientY - dragOffY) + 'px';
     }
 
     function onDragMove(e) {
